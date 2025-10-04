@@ -1,0 +1,21 @@
+# Ignore Python cache and environment
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+env/
+venv/
+*.env
+
+# Ignore Streamlit cache
+.streamlit/
+
+# Ignore PDFs in Documents folder
+Documents/*.pdf
+
+# Ignore Chroma persistence folder
+chroma_persist/
+
+# Ignore other OS files
+.DS_Store
+Thumbs.db

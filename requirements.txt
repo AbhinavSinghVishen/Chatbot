@@ -1,0 +1,19 @@
+# LangChain Core
+langchain
+
+# Cohere Integration
+langchain-cohere
+cohere
+
+# Vector Store
+chromadb
+langchain_community  # For Chroma vector store integration
+
+# PDF Handling
+pypdf
+
+# UI
+streamlit
+
+# Environment Variable Management
+python-dotenv
