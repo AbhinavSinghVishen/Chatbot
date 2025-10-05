@@ -86,15 +86,40 @@ def get_retrieval_chain(_cohere_api_key):
     # st.success("Document processing complete. The chatbot is ready!")
     return retrieval_chain
 
+def inject_external_style():
+    style_path = "style.txt"  # Path to your text file
+    if os.path.exists(style_path):
+        with open(style_path, "r", encoding="utf-8") as f:
+            style_content = f.read()
+        # Inject the text exactly as is (useful for CSS)
+        st.markdown(f"{style_content}", unsafe_allow_html=True)
+    else:
+        st.warning("style.txt not found. Using default style.")
+
 
 # --- Main Application Logic ---
 def main():
     # Set up the Streamlit page configuration
     st.set_page_config(page_title="Jharkhand Policies ChatBot", page_icon="📚")
-    st.header("Jharkhand Policies ChatBot 🤖")
-    st.markdown(
-        "Ask questions about the Jharkhand Government policies."
-    )
+    # Apply green theme CSS
+    inject_external_style()
+    Jharkhand_state_logo = "logo.png"
+
+    col1, col2 = st.columns([1, 8])  # Adjust ratio for spacing
+
+    with col1:
+        st.image(Jharkhand_state_logo, width=64)  # Logo size
+
+    with col2:
+        st.markdown(
+            """
+            <h1 id="jharkhand-policies-chat-bot">Jharkhand Policies ChatBot</h1>
+            """,
+            unsafe_allow_html=True
+        )
+
+
+
 
     # Check for the Cohere API key
     cohere_api_key = os.getenv("CO_API_KEY")
@@ -136,12 +161,12 @@ def main():
         st.stop()
 
     # --- Modern Chat Interface ---
-
+     
     # Display past messages from session state
     for message in st.session_state.history:
         with st.chat_message(message["Role"]):
             st.markdown(message["Message"])
-
+    
     # Get user input from the chat input box at the bottom of the screen
     if user_question := st.chat_input("Ask a question about any policy..."):
         # Add user message to history and display it
@@ -150,13 +175,13 @@ def main():
         )
         with st.chat_message("user"):
             st.markdown(user_question)
-
+        
         # Get and display the bot's response
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
                 response = retrieval_chain.invoke({"input": user_question})
                 response_output = response["answer"]
-
+            
                 # Add bot response to history and display it
                 st.session_state.history.append(
                     {
@@ -166,6 +191,7 @@ def main():
                     }
                 )
                 st.markdown(response_output)
+                st.rerun()
 
 
 # --- Application Entry Point ---

@@ -1,0 +1,263 @@
+<style>
+    :root{
+        --primary-green: #1f7a1f;
+        --accent-green: #2ea44f;
+        --muted-green: #e6f7ea;
+        --header-footer-green: #105f10ff;
+        --text-dark: #07200a;
+    }
+
+    /* Page background and main container */
+    html, body, [data-testid='stAppViewContainer'], .main {
+        background: linear-gradient(180deg, #f6fff6 0%, #eafbe9 100%) !important;
+        color: var(--text-dark) !important;
+    }
+
+    /* Sidebar styling */
+    [data-testid='stSidebar'], .css-1d391kg {
+        background: linear-gradient(180deg, #e8f7ea 0%, #dff3dd 100%) !important;
+        border-right: 1px solid rgba(31,122,31,0.08) !important;
+    }
+
+    /* Headers and main title */
+    .stHeader, h1, .css-18e3th9 { color: var(--primary-green) !important; }
+    /* Make the page title text black for better contrast */
+    h1#jharkhand-policies-chat-bot {
+        color: #000000 !important;
+    }
+
+    /* Buttons */
+    button, .stButton>button {
+        background-color: var(--accent-green) !important;
+        color: white !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 8px 12px !important;
+        border-radius: 8px !important;
+    }
+
+    /* Chat bubbles: align user to right, assistant to left using strong selectors */
+    /* Target the outer chat message container Streamlit renders */
+    div[data-testid='stChatMessage'][aria-label='user'] {
+        display: flex !important;
+        justify-content: flex-end !important;
+        padding: 6px 12px !important;
+    }
+    div[data-testid='stChatMessage'][aria-label='assistant'] {
+        display: flex !important;
+        justify-content: flex-start !important;
+        padding: 6px 12px !important;
+    }
+
+    /* Make the inner bubble shrink-to-fit the content and stick to the side */
+    div[data-testid='stChatMessage'][aria-label='user'] > div:last-child,
+    div[data-testid='stChatMessage'][aria-label='assistant'] > div:last-child {
+        display: inline-block !important;
+        width: auto !important;
+        max-width: 78% !important; /* avoid full width */
+        vertical-align: middle !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Style the user's bubble (right side) */
+    div[data-testid='stChatMessage'][aria-label='user'] > div:last-child {
+        background: linear-gradient(90deg, #e6f7ea, #dff3dd) !important;
+        color: #022602 !important;
+        padding: 10px 14px !important;
+        border-radius: 16px !important;
+        text-align: left !important;
+        border: 1px solid rgba(31,122,31,0.12) !important;
+        margin-left: 8px !important;
+    }
+
+    /* Style the assistant's bubble (left side) */
+    div[data-testid='stChatMessage'][aria-label='assistant'] > div:last-child {
+        background: #ffffff !important;
+        color: var(--text-dark) !important;
+        padding: 10px 14px !important;
+        border-radius: 16px !important;
+        text-align: left !important;
+        border: 1px solid rgba(0,0,0,0.06) !important;
+        margin-right: 8px !important;
+    }
+
+    /* Chat input area styling */
+    div[data-testid='stChatInput'], .stChatInput {
+        background: #fbfff9 !important;
+        border: 1px solid rgba(31,122,31,0.08) !important;
+        padding: 10px !important;
+        border-radius: 12px !important;
+    }
+    div[data-testid='stChatInput'] textarea, .stChatInput textarea {
+        background: transparent !important;
+        border: none !important;
+        resize: vertical !important;
+        min-height: 40px !important;
+        color: black !important;
+    }
+    div[data-testid='stChatInput'] button, .stChatInput button {
+        background: var(--primary-green) !important;
+        color: black !important;
+        border-radius: 8px !important;
+    }
+
+    /* Code blocks and inputs tinted green */
+    pre, code { background: #f3fbf3 !important; border-left: 4px solid rgba(46,164,79,0.12) !important; }
+    textarea, input[type='text'], .stTextInput>div>div>input { border: 1px solid rgba(31,122,31,0.08) !important; background: #fbfff9 !important; }
+
+    a { color: var(--primary-green) !important; }
+
+    /* Header and Footer: dark green background for strong branding */
+    /* Header (top page title area) */
+    header, .stHeader, .css-18e3th9, [data-testid='stHeader'] {
+        background: var(--header-footer-green) !important;
+        color: #ffffff !important;
+        padding: 8px 12px !important;
+    }
+
+    /* Footer (bottom page area) */
+    footer, .stFooter, [data-testid='stAppFooter'] {
+        background: var(--header-footer-green) !important;
+        color: #ffffff !important;
+        padding: 8px 12px !important;
+        border-radius: 6px !important;
+    }
+
+    /* Specific rule for the inspected container element (matches your screenshot)
+       e.g. <div class="st-emotion-cache-128upt6 e4man113"> */
+    div.st-emotion-cache-128upt6.e4man113 {
+        background: var(--muted-green) !important;
+        color: #000000ff !important;
+        padding: 10px !important;
+        border-radius: 8px !important;
+    }
+    /* Make sure the chat input inside that container stays readable */
+    div.st-emotion-cache-128upt6.e4man113 textarea,
+    div.st-emotion-cache-128upt6.e4man113 [data-testid='stChatInputTextArea'] {
+        background: rgba(255,255,255,0.9) !important;
+        color: #000000 !important;
+        border: 1px solid rgba(0,0,0,0.08) !important;
+    }
+    /* placeholder should be visible on light background */
+    div.st-emotion-cache-128upt6.e4man113 textarea::placeholder,
+    div.st-emotion-cache-128upt6.e4man113 [data-testid='stChatInputTextArea']::placeholder {
+        color: rgba(0,0,0,0.45) !important;
+    }
+        /* Precisely match the inline style shown by the user for the icon span */
+        span.st-emotion-cache-pd6qx2.ejhh0er0[data-testid='stIconMaterial'] {
+            color: #ffffff !important; /* explicit white color */
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 20px !important; /* adjustable icon size */
+            line-height: 1 !important;
+            vertical-align: middle !important;
+            opacity: 1 !important;
+        }
+    div.st-emotion-cache-128upt6.e4man113 button[data-testid='stChatInputSubmitButton'],
+    div.st-emotion-cache-128upt6.e4man113 button {
+        background: #ffffff !important;
+        color: var(--header-footer-green) !important;
+        border-radius: 8px !important;
+    }
+
+    /* Disable Streamlit image hover preview/zoom */
+    /* Target common Streamlit image wrappers and the images themselves. */
+    [data-testid='stImage'] img,
+    .stImage img,
+    div.st-emotion-cache-128upt6.e4man113 img {
+        pointer-events: none !important; /* prevent click which opens preview */
+        cursor: default !important;
+        transform: none !important;
+        transition: none !important;
+    }
+    /* Also prevent anchor wrapping from capturing clicks */
+    [data-testid='stImage'] a,
+    .stImage a {
+        pointer-events: none !important;
+    }
+
+    /* Remove/hide the specific overlay button used by some UI kits on the logo
+       (selector provided by the user). This will prevent the button from showing
+       or intercepting clicks on the logo. */
+    #bui2__anchor > button {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
+    /* Also disable the anchor if present to avoid hover effects */
+    #bui2__anchor {
+        pointer-events: none !important;
+    }
+
+    /* Ensure the element with id 'jharkhand-policies-chat-bot' stays on a single line
+       and truncates with an ellipsis if the available width is too small. */
+    #jharkhand-policies-chat-bot {
+        display: inline-block !important;
+        max-width: 100% !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        vertical-align: middle !important;
+    }
+
+        /* Make the vertical header block wide and layout items horizontally so the
+           logo and full title can appear on one line */
+        div.stVerticalBlock.st-emotion-cache-tn0cau.e196pkbe2 {
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            width: 100% !important;
+            max-width: none !important;
+            box-sizing: border-box !important;
+        }
+
+        /* Prevent the main title from truncating and force it on one line */
+        h1#jharkhand-policies-chat-bot {
+            white-space: nowrap !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+            max-width: none !important;
+            display: inline-block !important;
+        }
+
+        /* Ensure any logo image inside the vertical block is sized appropriately */
+        div.stVerticalBlock.st-emotion-cache-tn0cau.e196pkbe2 img {
+            max-width: 64px !important;
+            height: auto !important;
+            display: inline-block !important;
+        }
+
+        /* Make header logo and title appear in a single row */
+        div[data-testid="stHorizontalBlock"] {
+            display: flex !important;
+            align-items: center !important;
+            gap: 18px !important;
+            width: 100% !important;
+            max-width: none !important;
+            box-sizing: border-box !important;
+        }
+
+        /* Ensure logo always stays at intended size */
+        div[data-testid="stHorizontalBlock"] img,
+        .stImage img {
+            max-width: 64px !important;
+            height: auto !important;
+            min-width: 48px !important;
+            display: inline-block !important;
+        }
+
+        /* Header title stays on single line, no wrapping */
+        #jharkhand-policies-chat-bot {
+            margin: 0 !important;
+            padding: 0 !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            font-size: 2.2rem !important; /* Adjust as needed */
+            vertical-align: middle !important;
+            display: inline-block !important;
+        }
+
+
+    </style>
