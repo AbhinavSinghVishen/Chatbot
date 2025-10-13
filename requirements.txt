@@ -7,6 +7,7 @@ cohere
 
 # Vector Store
 chromadb
+langchain-chroma
 langchain_community  # For Chroma vector store integration
 
 # PDF Handling

@@ -8,10 +8,9 @@ from datetime import datetime
 from langchain.prompts import PromptTemplate
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain_community.document_loaders import DirectoryLoader, PyPDFLoader
-from langchain_community.vectorstores import Chroma
+# from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma #to avoid deprication warning
 from langchain_cohere import ChatCohere, CohereEmbeddings
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 # --- Load Environment Variables ---
 # Make sure you have a .env file with your CO_API_KEY
@@ -22,47 +21,33 @@ load_dotenv()
 @st.cache_resource
 def get_retrieval_chain(_cohere_api_key):
     """
-    Creates and caches a retrieval chain. This function performs the heavy lifting
-    (loading docs, creating embeddings, setting up the chain) and runs only ONCE.
-    Subsequent runs will use the cached object for speed.
+    Loads a cached retrieval chain from the persisted Chroma vector database.
+    If the database is not found, it returns None.
     """
-    # 1. Load PDF documents from the specified directory
-    # st.info("Loading and processing documents... This will only happen once.")
-    loader = DirectoryLoader(
-        "Documents/", glob="*.pdf", loader_cls=PyPDFLoader, show_progress=True
-    )
-    documents = loader.load()
+    persist_directory = 'chroma_persist'
 
-    if not documents:
-        st.error(
-            "No PDF files found in the 'Documents' directory. Please add at least one PDF and restart."
+    if not os.path.exists(persist_directory) or not os.listdir(persist_directory):
+        st.warning(
+            "Vector database not found. Please run 'preprocess.py' first to build the database."
         )
         return None
 
-    # 2. Split the documents into smaller, manageable chunks
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-    chunks = text_splitter.split_documents(documents)
+    # Initialize Cohere embeddings
+    embeddings = CohereEmbeddings(model="embed-v4.0", cohere_api_key=_cohere_api_key)
 
-    # 3. Create document embeddings and store them in a Chroma vector store
-    # This step involves API calls to Cohere and is the most expensive part.
-    embeddings = CohereEmbeddings(
-        model="embed-v4.0", cohere_api_key=_cohere_api_key
+    # Load existing Chroma vector store
+    vector_store = Chroma(
+        persist_directory=persist_directory,
+        embedding_function=embeddings,
+        collection_name="jharkhand_policies"
     )
 
-    persist_directory = 'chroma_persist'
-    vector_store = Chroma.from_documents(
-    chunks,
-    embeddings,
-    persist_directory=persist_directory,
-    collection_name="jharkhand_policies",  # optional, for clarity
-    )
-
-    # 4. Define the prompt template for the RAG chain
+    # Define the RAG prompt template
     prompt_template = """
-    You are an assistant that MUST answer using ONLY the information in the provided Context.
-    Your answer should be clear, concise, and directly address the question.
-    If the answer cannot be found exactly in the Context, reply with:
-    "It seems that this specific information isn’t covered in the provided government policies."
+    # You are an assistant that MUST answer using ONLY the information in the provided Context.
+    # Your answer should be clear, concise, and directly address the question.
+    # If the answer cannot be found exactly in the Context, reply with:
+    # "It seems that this specific information isn't covered in the provided government policies."
 
     Context:
     {context}
@@ -72,18 +57,14 @@ def get_retrieval_chain(_cohere_api_key):
 
     Answer:
     """
-    prompt = PromptTemplate(
-        template=prompt_template, input_variables=["context", "input"]
-    )
+    prompt = PromptTemplate(template=prompt_template, input_variables=["context", "input"])
 
-    # 5. Initialize the Cohere LLM and create the retrieval chain
+    # Initialize the LLM and retrieval chain
     llm = ChatCohere(model="command-a-03-2025", api_key=_cohere_api_key, temperature=0.1)
     document_chain = create_stuff_documents_chain(llm, prompt)
     retriever = vector_store.as_retriever(search_kwargs={"k": 5})
 
     retrieval_chain = create_retrieval_chain(retriever, document_chain)
-    
-    # st.success("Document processing complete. The chatbot is ready!")
     return retrieval_chain
 
 def inject_external_style():
