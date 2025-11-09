@@ -6,6 +6,7 @@ from langchain_community.document_loaders import DirectoryLoader, PyPDFLoader
 from langchain_chroma import Chroma #to avoid deprication warning
 from langchain_cohere import CohereEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from utils import initialize_vector_store
 
 # --- Load API key ---
 load_dotenv()
@@ -24,13 +25,52 @@ CHUNK_OVERLAP = 200
 BATCH_SIZE = 100   # how many chunks to embed at once
 SLEEP_BETWEEN_BATCHES = 5  # seconds pause between batches
 
-# --- Step 1: Load PDFs ---
-print("Loading PDF documents...")
-loader = DirectoryLoader(DOCUMENTS_DIR, glob="*.pdf", loader_cls=PyPDFLoader, show_progress=True)
-documents = loader.load()
+# Accessing vector database
+vector_store = initialize_vector_store(PERSIST_DIR, cohere_api_key, COLLECTION_NAME)
+
+# Fix the metadata access code
+print("Checking already processed files in database..")
+# The correct way to access metadata from Chroma's get() method
+results = vector_store.get(include=["metadatas"])
+existing_docs = set()
+if results and 'metadatas' in results and results['metadatas']:
+    for metadata in results['metadatas']:
+        if metadata and 'source' in metadata:
+            existing_docs.add(metadata['source'])
+
+print(f"Found {len(existing_docs)} already processed documents.")
+
+# Get list of currently present docs 
+current_docs = set()
+for filename in os.listdir(DOCUMENTS_DIR):
+    if filename.endswith(".pdf"):
+        # We create the full path just like the loader does, for a perfect match.
+        current_docs.add(os.path.join(DOCUMENTS_DIR, filename))
+
+print(f"Found {len(current_docs)} PDF files in '{DOCUMENTS_DIR}' directory.")
+
+# Check whether new unprocessed files present to pre-process
+docs_to_process = current_docs - existing_docs
+
+if not docs_to_process:
+    print("\nNo new documents to process. Your vector store is up-to-date!")
+    exit(0)
+
+print(f"\nFound {len(docs_to_process)} new document(s) to process:")
+
+
+
+# --- Step 1: Load only unprocessed PDFs ---
+print("Loading unprocessed PDF documents...")
+documents = []
+for doc_path in docs_to_process:
+    print(f"\nLoading '{os.path.basename(doc_path)}'...")
+    loader = PyPDFLoader(doc_path)
+    # .load() returns a list of pages, so we extend our main list.
+    documents.extend(loader.load())
 
 if not documents:
-    print(f"No PDF files found in '{DOCUMENTS_DIR}' directory.")
+    print(f"No new PDF files could be loaded.")
     exit(1)
 
 print(f"Loaded {len(documents)} documents.")
