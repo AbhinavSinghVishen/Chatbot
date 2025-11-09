@@ -3,6 +3,7 @@ import pandas as pd
 import os
 from dotenv import load_dotenv
 from datetime import datetime
+from utils import initialize_vector_store
 
 # --- LangChain Imports ---
 from langchain.prompts import PromptTemplate
@@ -32,15 +33,8 @@ def get_retrieval_chain(_cohere_api_key):
         )
         return None
 
-    # Initialize Cohere embeddings
-    embeddings = CohereEmbeddings(model="embed-v4.0", cohere_api_key=_cohere_api_key)
-
-    # Load existing Chroma vector store
-    vector_store = Chroma(
-        persist_directory=persist_directory,
-        embedding_function=embeddings,
-        collection_name="jharkhand_policies"
-    )
+    # Use the shared function to initialize vector store
+    vector_store = initialize_vector_store(persist_directory, _cohere_api_key)
 
     # Define the RAG prompt template
     prompt_template = """
