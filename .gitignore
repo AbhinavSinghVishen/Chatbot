@@ -10,8 +10,8 @@ venv/
 # Ignore Streamlit cache
 .streamlit/
 
-# Ignore PDFs in Documents folder
-Documents/*.pdf
+# Ignore Data folder
+Data
 
 # Ignore Chroma persistence folder
 chroma_persist/
