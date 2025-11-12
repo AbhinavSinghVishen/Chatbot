@@ -1,14 +1,11 @@
 import os
 import time
 from dotenv import load_dotenv
-from langchain_community.document_loaders import DirectoryLoader, PyPDFLoader
-# from langchain_community.vectorstores import Chroma
-from langchain_chroma import Chroma #to avoid deprication warning
+from langchain_chroma import Chroma
 from langchain_cohere import CohereEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.schema import Document
 
-# --- Load API key ---
 load_dotenv()
 cohere_api_key = os.getenv("CO_API_KEY")
 
@@ -16,16 +13,14 @@ if not cohere_api_key:
     print("ERROR: CO_API_KEY not found in .env file.")
     exit(1)
 
-# --- Settings ---
 TEXT_DOCUMENT = "Data\\Text_Document\\data.txt"
 PERSIST_DIR = "chroma_persist"
 COLLECTION_NAME = "jharkhand_policies"
 CHUNK_SIZE = 1000
 CHUNK_OVERLAP = 200
-BATCH_SIZE = 100   # how many chunks to embed at once
-SLEEP_BETWEEN_BATCHES = 5  # seconds pause between batches
+BATCH_SIZE = 100
+SLEEP_BETWEEN_BATCHES = 5
 
-# --- Step 1: Load PDFs ---
 print("Loading text file...")
 text_data = ''
 try:
@@ -42,17 +37,14 @@ documents = [Document(page_content=text_data)]
 
 print(f"Loaded {len(documents)} documents.")
 
-# --- Step 2: Split into Chunks ---
 print("Splitting documents into chunks...")
 splitter = RecursiveCharacterTextSplitter(chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP)
 chunks = splitter.split_documents(documents)
 print(f"Created {len(chunks)} chunks for embedding.")
 
-# --- Step 3: Initialize Cohere embeddings ---
 print("Initializing Cohere embeddings...")
 embeddings = CohereEmbeddings(model="embed-v4.0", cohere_api_key=cohere_api_key)
 
-# --- Step 4: Create or load Chroma store ---
 print("Creating or loading Chroma vector store...")
 vector_store = Chroma(
     persist_directory=PERSIST_DIR,
@@ -60,7 +52,6 @@ vector_store = Chroma(
     collection_name=COLLECTION_NAME
 )
 
-# --- Step 5: Batch processing with pause ---
 print("\nStarting embedding process in batches...")
 total_batches = (len(chunks) + BATCH_SIZE - 1) // BATCH_SIZE
 

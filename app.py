@@ -6,7 +6,6 @@ from datetime import datetime
 from utils import initialize_vector_store
 
 from langchain.prompts import PromptTemplate
-from langchain.chains import create_retrieval_chain
 from langchain.chains import ConversationalRetrievalChain
 from langchain_cohere import ChatCohere
 
@@ -67,7 +66,7 @@ def inject_external_style():
 
 
 def main():
-    st.set_page_config(page_title="Jharkhand Policies ChatBot", page_icon="📚")
+    st.set_page_config(page_title="Jharkhand Policies ChatBot", page_icon="logo.png")
     inject_external_style()
     Jharkhand_state_logo = "logo.png"
 
@@ -83,9 +82,6 @@ def main():
             """,
             unsafe_allow_html=True
         )
-
-
-
 
     cohere_api_key = os.getenv("CO_API_KEY")
     if not cohere_api_key:
@@ -104,7 +100,6 @@ def main():
         if st.session_state.history:
             st.markdown("---")
             st.markdown("### Download Chat History")
-            # Convert history to a DataFrame for easy CSV conversion
             df = pd.DataFrame(
                 st.session_state.history, columns=["Role", "Message", "Timestamp"]
             )
