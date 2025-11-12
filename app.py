@@ -8,7 +8,7 @@ from utils import initialize_vector_store
 # --- LangChain Imports ---
 from langchain.prompts import PromptTemplate
 from langchain.chains import create_retrieval_chain
-from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains import ConversationalRetrievalChain
 # from langchain_community.vectorstores import Chroma
 from langchain_chroma import Chroma #to avoid deprication warning
 from langchain_cohere import ChatCohere, CohereEmbeddings
@@ -38,27 +38,31 @@ def get_retrieval_chain(_cohere_api_key):
 
     # Define the RAG prompt template
     prompt_template = """
-    # You are an assistant that MUST answer using ONLY the information in the provided Context.
+    # You are an assistant that MUST answer in English ONLY using ONLY the information in the provided Context.
     # Your answer should be clear, concise, and directly address the question.
-    # If the answer cannot be found exactly in the Context, reply with:
-    # "It seems that this specific information isn't covered in the provided government policies."
+    # If the answer cannot be found exactly in the Context, reply with something like:
+    # "I couldn't find any Jharkhand government policy related to your query. Please try rephrasing your question or specify a department or scheme for more accurate results."
 
     Context:
     {context}
 
     Question:
-    {input}
+    {question}
 
     Answer:
     """
-    prompt = PromptTemplate(template=prompt_template, input_variables=["context", "input"])
+    prompt = PromptTemplate(template=prompt_template, input_variables=["context", "question"])
 
     # Initialize the LLM and retrieval chain
-    llm = ChatCohere(model="command-a-03-2025", api_key=_cohere_api_key, temperature=0.1)
-    document_chain = create_stuff_documents_chain(llm, prompt)
+    llm = ChatCohere(model="command-a-03-2025", api_key=_cohere_api_key, temperature=0.5)
     retriever = vector_store.as_retriever(search_kwargs={"k": 5})
 
-    retrieval_chain = create_retrieval_chain(retriever, document_chain)
+    retrieval_chain = ConversationalRetrievalChain.from_llm(
+        llm,
+        retriever,
+        combine_docs_chain_kwargs={"prompt": prompt},
+        return_source_documents=False
+    )
     return retrieval_chain
 
 def inject_external_style():
@@ -154,7 +158,11 @@ def main():
         # Get and display the bot's response
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
-                response = retrieval_chain.invoke({"input": user_question})
+                chat_history = [(msg["Role"], msg["Message"]) for msg in st.session_state.history]
+                response = retrieval_chain.invoke({
+                    "question": user_question,
+                    "chat_history": chat_history
+                })
                 response_output = response["answer"]
             
                 # Add bot response to history and display it
