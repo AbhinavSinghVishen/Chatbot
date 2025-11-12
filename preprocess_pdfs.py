@@ -1,14 +1,12 @@
 import os
 import time
 from dotenv import load_dotenv
-from langchain_community.document_loaders import DirectoryLoader, PyPDFLoader
-# from langchain_community.vectorstores import Chroma
-from langchain_chroma import Chroma #to avoid deprication warning
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_chroma import Chroma
 from langchain_cohere import CohereEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from utils import initialize_vector_store
 
-# --- Load API key ---
 load_dotenv()
 cohere_api_key = os.getenv("CO_API_KEY")
 
@@ -16,21 +14,17 @@ if not cohere_api_key:
     print("ERROR: CO_API_KEY not found in .env file.")
     exit(1)
 
-# --- Settings ---
 DOCUMENTS_DIR = "Data\\Text_Document"
 PERSIST_DIR = "chroma_persist"
 COLLECTION_NAME = "jharkhand_policies"
 CHUNK_SIZE = 1000
 CHUNK_OVERLAP = 200
-BATCH_SIZE = 100   # how many chunks to embed at once
-SLEEP_BETWEEN_BATCHES = 5  # seconds pause between batches
+BATCH_SIZE = 100   
+SLEEP_BETWEEN_BATCHES = 5
 
-# Accessing vector database
 vector_store = initialize_vector_store(PERSIST_DIR, cohere_api_key, COLLECTION_NAME)
 
-# Fix the metadata access code
 print("Checking already processed files in database..")
-# The correct way to access metadata from Chroma's get() method
 results = vector_store.get(include=["metadatas"])
 existing_docs = set()
 if results and 'metadatas' in results and results['metadatas']:
@@ -40,16 +34,13 @@ if results and 'metadatas' in results and results['metadatas']:
 
 print(f"Found {len(existing_docs)} already processed documents.")
 
-# Get list of currently present docs 
 current_docs = set()
 for filename in os.listdir(DOCUMENTS_DIR):
     if filename.endswith(".pdf"):
-        # We create the full path just like the loader does, for a perfect match.
         current_docs.add(os.path.join(DOCUMENTS_DIR, filename))
 
 print(f"Found {len(current_docs)} PDF files in '{DOCUMENTS_DIR}' directory.")
 
-# Check whether new unprocessed files present to pre-process
 docs_to_process = current_docs - existing_docs
 
 if not docs_to_process:
@@ -60,13 +51,11 @@ print(f"\nFound {len(docs_to_process)} new document(s) to process:")
 
 
 
-# --- Step 1: Load only unprocessed PDFs ---
 print("Loading unprocessed PDF documents...")
 documents = []
 for doc_path in docs_to_process:
     print(f"\nLoading '{os.path.basename(doc_path)}'...")
     loader = PyPDFLoader(doc_path)
-    # .load() returns a list of pages, so we extend our main list.
     documents.extend(loader.load())
 
 if not documents:
@@ -75,17 +64,14 @@ if not documents:
 
 print(f"Loaded {len(documents)} documents.")
 
-# --- Step 2: Split into Chunks ---
 print("Splitting documents into chunks...")
 splitter = RecursiveCharacterTextSplitter(chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP)
 chunks = splitter.split_documents(documents)
 print(f"Created {len(chunks)} chunks for embedding.")
 
-# --- Step 3: Initialize Cohere embeddings ---
 print("Initializing Cohere embeddings...")
 embeddings = CohereEmbeddings(model="embed-v4.0", cohere_api_key=cohere_api_key)
 
-# --- Step 4: Create or load Chroma store ---
 print("Creating or loading Chroma vector store...")
 vector_store = Chroma(
     persist_directory=PERSIST_DIR,
@@ -93,7 +79,6 @@ vector_store = Chroma(
     collection_name=COLLECTION_NAME
 )
 
-# --- Step 5: Batch processing with pause ---
 print("\nStarting embedding process in batches...")
 total_batches = (len(chunks) + BATCH_SIZE - 1) // BATCH_SIZE
 
