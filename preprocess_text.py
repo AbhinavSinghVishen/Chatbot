@@ -5,6 +5,7 @@ from langchain_chroma import Chroma
 from langchain_cohere import CohereEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.schema import Document
+from utils import initialize_vector_store
 
 load_dotenv()
 cohere_api_key = os.getenv("CO_API_KEY")
@@ -21,6 +22,24 @@ CHUNK_OVERLAP = 200
 BATCH_SIZE = 100
 SLEEP_BETWEEN_BATCHES = 5
 
+# Initialize vector store
+vector_store = initialize_vector_store(PERSIST_DIR, cohere_api_key, COLLECTION_NAME)
+
+# Check if text file already processed
+print("Checking if text file already processed...")
+results = vector_store.get(include=["metadatas"])
+text_already_processed = False
+if results and 'metadatas' in results and results['metadatas']:
+    for metadata in results['metadatas']:
+        if metadata and 'source' in metadata:
+            if metadata['source'] == TEXT_DOCUMENT:
+                text_already_processed = True
+                break
+
+if text_already_processed:
+    print(f"\nText file '{TEXT_DOCUMENT}' already processed. Vector store is up-to-date!")
+    exit(0)
+
 print("Loading text file...")
 text_data = ''
 try:
@@ -33,7 +52,7 @@ except Exception as e:
     print("Some error occured!", e)
     exit(1)
 
-documents = [Document(page_content=text_data)]
+documents = [Document(page_content=text_data, metadata={"source": TEXT_DOCUMENT})]
 
 print(f"Loaded {len(documents)} documents.")
 
