@@ -14,7 +14,7 @@ if not cohere_api_key:
     print("ERROR: CO_API_KEY not found in .env file.")
     exit(1)
 
-DOCUMENTS_DIR = "Data\\Text_Document"
+DOCUMENTS_DIR = "Data\\Pdf_Document"
 PERSIST_DIR = "chroma_persist"
 COLLECTION_NAME = "jharkhand_policies"
 CHUNK_SIZE = 1000
